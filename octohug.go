@@ -154,10 +154,12 @@ func visit(path string, fileInfo os.FileInfo, err error) error {
 				hugoFileWriter.WriteString("\"" + matches[1] + "\"")
 				firstTagAdded = true
 			}
-			tag := strings.Replace(matches[1], "'", "", -1)
-			tag = strings.Replace(tag, "\"", "", -1)
-			hugoFileWriter.WriteString("\"" + tag + "\"")
-			firstTagAdded = true
+			if len(matches) == 1 {
+				tag := strings.Replace(matches[1], "'", "", -1)
+				tag = strings.Replace(tag, "\"", "", -1)
+				hugoFileWriter.WriteString("\"" + tag + "\"")
+				firstTagAdded = true
+			}
 		} else if strings.Contains(octopressLineAsString, "date: ") {
 			parts := strings.Split(octopressLineAsString, " ")
 			hugoFileWriter.WriteString("date = \"" + parts[1] + "\"\n")
