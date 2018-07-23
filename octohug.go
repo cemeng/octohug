@@ -83,33 +83,28 @@ func visit(path string, fileInfo os.FileInfo, err error) error {
 	defer hugoFile.Close()
 	hugoFileWriter := bufio.NewWriter(hugoFile)
 
-	// octopressDateRegex := regexp.MustCompile(`^date:`)
-
 	// Read the octopress file line by line
 	headerTagSeen := false
-	inCategories := false
-	inTags := false
 	octopressFileReader := bufio.NewReaderSize(octopressFile, 10*1024)
 	octopressLine, isPrefix, lineError := octopressFileReader.ReadLine()
 	hasDate := false
 	for lineError == nil && !isPrefix {
 		octopressLineAsString := string(octopressLine)
-		if octopressLineAsString == "---" {
-			headerTagSeen = !headerTagSeen
-			if inCategories || inTags {
-				hugoFileWriter.WriteString("]\n")
-				inCategories = false
-				inTags = false
-			}
-			if headerTagSeen && !hasDate {
-				hugoFileWriter.WriteString("date: \"" + slugDateFromFile + "\"\n")
-				octoSlugDate := strings.Replace(slugDateFromFile, "-", "/", -1)
-				octoFriendlySlug := octoSlugDate + "/" + octopressFilenameWithoutExtension
-				hugoFileWriter.WriteString("slug: \"" + octoFriendlySlug + "\"\n")
-			} else {
+		if octopressLineAsString == "---" || octopressLineAsString == "--- " {
+			if !headerTagSeen {
 				hasDate = false
+			} else {
+				if !hasDate { // the header has no date so far
+					hugoFileWriter.WriteString("date: \"" + slugDateFromFile + "\"\n")
+					octoSlugDate := strings.Replace(slugDateFromFile, "-", "/", -1)
+					octoFriendlySlug := octoSlugDate + "/" + octopressFilenameWithoutExtension
+					hugoFileWriter.WriteString("slug: \"" + octoFriendlySlug + "\"\n")
+				} else {
+					hasDate = false
+				}
 			}
-			octopressLineAsString = string("---")
+			headerTagSeen = !headerTagSeen
+			octopressLineAsString = "---"
 		}
 
 		if strings.Contains(octopressLineAsString, "date: ") {
