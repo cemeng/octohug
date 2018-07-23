@@ -102,26 +102,26 @@ func visit(path string, fileInfo os.FileInfo, err error) error {
 				inCategories = false
 				inTags = false
 			}
-			octopressLineAsString = string("+++")
+			octopressLineAsString = string("---")
 		}
 
 		if strings.Contains(octopressLineAsString, "categories:") {
 			inCategories = true
-			hugoFileWriter.WriteString("Categories = [")
+			hugoFileWriter.WriteString("Categories: [")
 		} else if strings.Contains(octopressLineAsString, "tags:") {
 			if inCategories {
 				inCategories = false
 				hugoFileWriter.WriteString("]\n")
 			}
 			inTags = true
-			hugoFileWriter.WriteString("Tags = [")
+			hugoFileWriter.WriteString("Tags: [")
 		} else if strings.Contains(octopressLineAsString, "keywords: ") {
 			inCategories = false
 			if inTags {
 				hugoFileWriter.WriteString("]\n")
 				inTags = false
 			}
-			hugoFileWriter.WriteString("keywords = [")
+			hugoFileWriter.WriteString("keywords: [")
 			parts := strings.Split(octopressLineAsString, ": ")
 			keywords := strings.Split(strings.Replace(parts[1], "\"", "", -1), ",")
 			firstKeyword := true
@@ -144,7 +144,7 @@ func visit(path string, fileInfo os.FileInfo, err error) error {
 			}
 		} else if octopressLineAsString == "tags:" {
 			inTags = true
-			hugoFileWriter.WriteString("Tags = [")
+			hugoFileWriter.WriteString("Tags: [")
 		} else if inTags {
 			matches = octopressCategoryOrTagNameRegex.FindStringSubmatch(octopressLineAsString)
 			if len(matches) > 1 {
@@ -162,15 +162,15 @@ func visit(path string, fileInfo os.FileInfo, err error) error {
 			}
 		} else if strings.Contains(octopressLineAsString, "date: ") {
 			parts := strings.Split(octopressLineAsString, " ")
-			hugoFileWriter.WriteString("date = \"" + parts[1] + "\"\n")
+			hugoFileWriter.WriteString("date: \"" + parts[1] + "\"\n")
 			octoSlugDate := strings.Replace(parts[1], "-", "/", -1)
 			octoFriendlySlug := octoSlugDate + "/" + octopressFilenameWithoutExtension
-			hugoFileWriter.WriteString("slug = \"" + octoFriendlySlug + "\"\n")
+			hugoFileWriter.WriteString("slug: \"" + octoFriendlySlug + "\"\n")
 		} else if strings.Contains(octopressLineAsString, "title: ") {
 			// to keep the urls the same as octopress, the title
 			// needs to be the filename
 			parts := strings.Split(octopressFilenameWithoutExtension, "-")
-			hugoFileWriter.WriteString("title = \"")
+			hugoFileWriter.WriteString("title: \"")
 			firstPart := true
 			for _, part := range parts {
 				if !firstPart {
@@ -182,7 +182,7 @@ func visit(path string, fileInfo os.FileInfo, err error) error {
 			hugoFileWriter.WriteString("\"\n")
 		} else if strings.Contains(octopressLineAsString, "description: ") {
 			parts := strings.Split(octopressLineAsString, ": ")
-			hugoFileWriter.WriteString("description = " + parts[1] + "\n")
+			hugoFileWriter.WriteString("description: " + parts[1] + "\n")
 		} else if strings.Contains(octopressLineAsString, "layout: ") {
 		} else if strings.Contains(octopressLineAsString, "author: ") {
 		} else if strings.Contains(octopressLineAsString, "comments: ") {
