@@ -53,14 +53,15 @@ func visit(path string, fileInfo os.FileInfo, err error) error {
 	octopressFilename := filepath.Base(path)
 
 	// Need to strip off the initial date and final .markdown from the post filename
-	regex := regexp.MustCompile(`^\d{4}-\d{2}-\d{2}-(.*).m(arkdown|d)`)
+	regex := regexp.MustCompile(`^(\d{4}-\d{2}-\d{2})-(.*).m(arkdown|d)`)
 	matches := regex.FindStringSubmatch(octopressFilename)
 
 	// Ignore non-matching filenames (i.e. do no dereference nil)
 	if matches == nil {
 		return nil
 	}
-	octopressFilenameWithoutExtension := matches[1]
+	octopressFilenameWithoutExtension := matches[2]
+	slugDateFromFile := matches[1]
 	hugoFilename := hugoPostDirectory + "/" + octopressFilenameWithoutExtension + ".md"
 	fmt.Printf("%s\n%s\n", path, hugoFilename)
 
@@ -93,6 +94,7 @@ func visit(path string, fileInfo os.FileInfo, err error) error {
 	firstTagAdded := false
 	octopressFileReader := bufio.NewReaderSize(octopressFile, 10*1024)
 	octopressLine, isPrefix, lineError := octopressFileReader.ReadLine()
+	hasDate := false
 	for lineError == nil && !isPrefix {
 		octopressLineAsString := string(octopressLine)
 		if octopressLineAsString == "---" {
@@ -101,6 +103,14 @@ func visit(path string, fileInfo os.FileInfo, err error) error {
 				hugoFileWriter.WriteString("]\n")
 				inCategories = false
 				inTags = false
+			}
+			if headerTagSeen && !hasDate {
+				hugoFileWriter.WriteString("date: \"" + slugDateFromFile + "\"\n")
+				octoSlugDate := strings.Replace(slugDateFromFile, "-", "/", -1)
+				octoFriendlySlug := octoSlugDate + "/" + octopressFilenameWithoutExtension
+				hugoFileWriter.WriteString("slug: \"" + octoFriendlySlug + "\"\n")
+			} else {
+				hasDate = false
 			}
 			octopressLineAsString = string("---")
 		}
@@ -166,6 +176,7 @@ func visit(path string, fileInfo os.FileInfo, err error) error {
 			octoSlugDate := strings.Replace(parts[1], "-", "/", -1)
 			octoFriendlySlug := octoSlugDate + "/" + octopressFilenameWithoutExtension
 			hugoFileWriter.WriteString("slug: \"" + octoFriendlySlug + "\"\n")
+			hasDate = true
 		} else if strings.Contains(octopressLineAsString, "title: ") {
 			// to keep the urls the same as octopress, the title
 			// needs to be the filename
