@@ -172,8 +172,14 @@ func visit(path string, fileInfo os.FileInfo, err error) error {
 			}
 		} else if strings.Contains(octopressLineAsString, "date: ") {
 			parts := strings.Split(octopressLineAsString, " ")
-			hugoFileWriter.WriteString("date: \"" + parts[1] + "\"\n")
-			octoSlugDate := strings.Replace(parts[1], "-", "/", -1)
+			timestampRegex := regexp.MustCompile(`T\d{2}:\d{2}:\d{2}\+\d{2}:\d{2}`)
+			dateStr := parts[1]
+			matches := timestampRegex.FindStringSubmatch(dateStr)
+			if len(matches) == 1 {
+				dateStr = strings.Replace(dateStr, matches[0], "", -1)
+			}
+			hugoFileWriter.WriteString("date: \"" + dateStr + "\"\n")
+			octoSlugDate := strings.Replace(dateStr, "-", "/", -1)
 			octoFriendlySlug := octoSlugDate + "/" + octopressFilenameWithoutExtension
 			hugoFileWriter.WriteString("slug: \"" + octoFriendlySlug + "\"\n")
 			hasDate = true
