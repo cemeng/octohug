@@ -84,14 +84,11 @@ func visit(path string, fileInfo os.FileInfo, err error) error {
 	hugoFileWriter := bufio.NewWriter(hugoFile)
 
 	// octopressDateRegex := regexp.MustCompile(`^date:`)
-	octopressCategoryOrTagNameRegex := regexp.MustCompile(`^- (.*)`)
 
 	// Read the octopress file line by line
 	headerTagSeen := false
 	inCategories := false
-	firstCategoryAdded := false
 	inTags := false
-	firstTagAdded := false
 	octopressFileReader := bufio.NewReaderSize(octopressFile, 10*1024)
 	octopressLine, isPrefix, lineError := octopressFileReader.ReadLine()
 	hasDate := false
@@ -115,62 +112,7 @@ func visit(path string, fileInfo os.FileInfo, err error) error {
 			octopressLineAsString = string("---")
 		}
 
-		if strings.Contains(octopressLineAsString, "categories:") {
-			inCategories = true
-			hugoFileWriter.WriteString("Categories: [")
-		} else if strings.Contains(octopressLineAsString, "tags:") {
-			if inCategories {
-				inCategories = false
-				hugoFileWriter.WriteString("]\n")
-			}
-			inTags = true
-			hugoFileWriter.WriteString("Tags: [")
-		} else if strings.Contains(octopressLineAsString, "keywords: ") {
-			inCategories = false
-			if inTags {
-				hugoFileWriter.WriteString("]\n")
-				inTags = false
-			}
-			hugoFileWriter.WriteString("keywords: [")
-			parts := strings.Split(octopressLineAsString, ": ")
-			keywords := strings.Split(strings.Replace(parts[1], "\"", "", -1), ",")
-			firstKeyword := true
-			for _, keyword := range keywords {
-				if !firstKeyword {
-					hugoFileWriter.WriteString(",")
-				}
-				hugoFileWriter.WriteString("\"" + keyword + "\"")
-				firstKeyword = false
-			}
-			hugoFileWriter.WriteString("]\n")
-		} else if inCategories && !inTags {
-			matches = octopressCategoryOrTagNameRegex.FindStringSubmatch(octopressLineAsString)
-			if len(matches) > 1 {
-				if firstCategoryAdded {
-					hugoFileWriter.WriteString(", ")
-				}
-				hugoFileWriter.WriteString("\"" + matches[1] + "\"")
-				firstCategoryAdded = true
-			}
-		} else if octopressLineAsString == "tags:" {
-			inTags = true
-			hugoFileWriter.WriteString("Tags: [")
-		} else if inTags {
-			matches = octopressCategoryOrTagNameRegex.FindStringSubmatch(octopressLineAsString)
-			if len(matches) > 1 {
-				if firstTagAdded {
-					hugoFileWriter.WriteString(", ")
-				}
-				hugoFileWriter.WriteString("\"" + matches[1] + "\"")
-				firstTagAdded = true
-			}
-			if len(matches) == 1 {
-				tag := strings.Replace(matches[1], "'", "", -1)
-				tag = strings.Replace(tag, "\"", "", -1)
-				hugoFileWriter.WriteString("\"" + tag + "\"")
-				firstTagAdded = true
-			}
-		} else if strings.Contains(octopressLineAsString, "date: ") {
+		if strings.Contains(octopressLineAsString, "date: ") {
 			parts := strings.Split(octopressLineAsString, " ")
 			timestampRegex := regexp.MustCompile(`T\d{2}:\d{2}:\d{2}\+\d{2}:\d{2}`)
 			dateStr := parts[1]
