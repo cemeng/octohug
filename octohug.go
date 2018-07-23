@@ -62,7 +62,7 @@ func visit(path string, fileInfo os.FileInfo, err error) error {
 	}
 	octopressFilenameWithoutExtension := matches[2]
 	slugDateFromFile := matches[1]
-	hugoFilename := hugoPostDirectory + "/" + octopressFilenameWithoutExtension + ".md"
+	hugoFilename := hugoPostDirectory + "/" + slugDateFromFile + "-" + octopressFilenameWithoutExtension + ".md"
 	fmt.Printf("%s\n%s\n", path, hugoFilename)
 
 	// Open the octopress file
