@@ -120,26 +120,8 @@ func visit(path string, fileInfo os.FileInfo, err error) error {
 			octoFriendlySlug := octoSlugDate + "/" + octopressFilenameWithoutExtension
 			hugoFileWriter.WriteString("slug: \"" + octoFriendlySlug + "\"\n")
 			hasDate = true
-		} else if strings.Contains(octopressLineAsString, "title: ") {
-			// to keep the urls the same as octopress, the title
-			// needs to be the filename
-			parts := strings.Split(octopressFilenameWithoutExtension, "-")
-			hugoFileWriter.WriteString("title: \"")
-			firstPart := true
-			for _, part := range parts {
-				if !firstPart {
-					hugoFileWriter.WriteString(" ")
-				}
-				hugoFileWriter.WriteString(part)
-				firstPart = false
-			}
-			hugoFileWriter.WriteString("\"\n")
-		} else if strings.Contains(octopressLineAsString, "description: ") {
-			parts := strings.Split(octopressLineAsString, ": ")
-			hugoFileWriter.WriteString("description: " + parts[1] + "\n")
 		} else if strings.Contains(octopressLineAsString, "layout: ") {
 		} else if strings.Contains(octopressLineAsString, "author: ") {
-		} else if strings.Contains(octopressLineAsString, "comments: ") {
 		} else if strings.Contains(octopressLineAsString, "slug: ") {
 		} else if strings.Contains(octopressLineAsString, "wordpress_id: ") {
 		} else if strings.Contains(octopressLineAsString, "published: ") {
